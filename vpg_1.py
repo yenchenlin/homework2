@@ -52,10 +52,25 @@ class CategoricalPolicy(object):
         h1 = tf.contrib.layers.fully_connected(self._observations, hidden_dim, activation_fn=tf.tanh)
         probs = tf.contrib.layers.fully_connected(h1, out_dim, activation_fn=tf.nn.softmax)
 
+        # Used when choosing action during data sampling phase
+
+        # Shape of probs: [1, n_actions]
         act_op = probs[0, :]
 
-        idxs_flattened = tf.range(0, tf.shape(probs)[0]) * tf.shape(probs)[1] + self._actions
-        probs_vec = tf.gather(tf.reshape(probs, [-1]), idxs_flattened)
+        # --------------------------------------------------
+        # Used when updating model
+
+        # Shape of probs: [total_timestep_iter, n_actions]
+
+        # 1. Find first action index of each timestep in flattened vector form
+        action_idxs_flattened = tf.range(0, tf.shape(probs)[0]) * tf.shape(probs)[1]
+
+        # 2. Add index of action chosen at each timestep, so now
+        # action_idxs_flattened represent action index chosen at each timestep
+        action_idxs_flattened += self._actions
+
+        # 3. Gather the probability of action at each timestep
+        probs_vec = tf.gather(tf.reshape(probs, [-1]), action_idxs_flattened)
 
         log_lik = tf.log(probs_vec + 1e-8)
 
@@ -76,6 +91,7 @@ class CategoricalPolicy(object):
         # by array[i]
         cs = np.cumsum(a)
         idx = sum(cs < np.random.rand())
+
         return idx
 
     def train(self, observations, actions, advantages):
@@ -158,7 +174,7 @@ class PolicyOptimizer(object):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--n_iter', default=100, type=int, help='number of iterations')
+    parser.add_argument('--n_iter', default=200, type=int, help='number of iterations')
     parser.add_argument('--n_episode', default=100, type=int, help='number of episodes/iteration')
     parser.add_argument('--path_length', default=200, type=int, help='number of steps')
     parser.add_argument('--learning_rate', default=0.01, help='learning rate for Adam Optimizer')
