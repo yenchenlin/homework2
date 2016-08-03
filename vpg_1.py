@@ -34,8 +34,8 @@ def flatten_space(space):
     else:
         raise ValueError("Env must be either Box or Discrete.")
 
-def discount_cumsum(x, gamma):
-    return lfilter([1], [1, -gamma], x[::-1], axis=0)[::-1]
+def discount_cumsum(x, discount_rate):
+    return lfilter([1], [1, -discount_rate], x[::-1], axis=0)[::-1]
 
 
 class CategoricalPolicy(object):
@@ -101,7 +101,7 @@ class CategoricalPolicy(object):
 
 class PolicyOptimizer(object):
     def __init__(self, env, policy, baseline, n_iter, n_episode, path_length,
-        gamma=.99):
+        discount_rate=.99):
 
         self.policy = policy
         self.baseline = baseline
@@ -109,7 +109,7 @@ class PolicyOptimizer(object):
         self.n_iter = n_iter
         self.n_episode = n_episode
         self.path_length = path_length
-        self.gamma = gamma
+        self.discount_rate = discount_rate
 
     def sample_path(self):
         obs = []
@@ -138,7 +138,7 @@ class PolicyOptimizer(object):
             # TODO: compute baseline
             # b = self.baseline.predict(p)
             b = 0
-            r = discount_cumsum(p["rewards"], self.gamma)
+            r = discount_cumsum(p["rewards"], self.discount_rate)
             a = r - b
 
             p["returns"] = r
@@ -202,5 +202,3 @@ if __name__ == '__main__':
 
     # train the policy optimizer
     po.train()
-
-    env.monitor.close()
