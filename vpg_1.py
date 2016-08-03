@@ -171,6 +171,9 @@ class PolicyOptimizer(object):
             loss = self.policy.train(data["observations"], data["actions"], data["advantages"])
             avg_return = np.mean([sum(p["rewards"]) for p in paths])
             print("Iteration {}: Loss = {}, Average Return = {}".format(i, loss, avg_return))
+            if avg_return >= 195:
+                print("Solve at {} iterations, whih equals {} episodes.".format(i, i*100))
+                break
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
