@@ -185,6 +185,7 @@ if __name__ == '__main__':
     parser.add_argument('--n_episode', default=100, type=int, help='number of episodes/iteration')
     parser.add_argument('--path_length', default=200, type=int, help='number of steps')
     parser.add_argument('--learning_rate', default=0.01, help='learning rate for Adam Optimizer')
+    parser.add_argument('--discount_rate', default=0.99, help='discount rate of agent')
     parser.add_argument('--env', default='CartPole-v0', help='gym environment for training')
     parser.add_argument('--algorithm', default='VPG', help='algorithm identifier')
     parser.add_argument('--seed', default=0, type=int, help='random seed')
@@ -204,7 +205,8 @@ if __name__ == '__main__':
     opt = tf.train.AdamOptimizer(learning_rate=args.learning_rate)
     policy = CategoricalPolicy(in_dim, out_dim, hidden_dim, opt, sess)
     baseline = LinearFeatureBaseline(None)
-    po = PolicyOptimizer(env, policy, baseline, args.n_iter, args.n_episode, args.path_length)
+    po = PolicyOptimizer(env, policy, baseline, args.n_iter, args.n_episode, args.path_length,
+                         args.discount_rate)
 
     sess.run(tf.initialize_all_variables())
 
