@@ -25,6 +25,7 @@ import gym
 import tensorflow as tf
 import numpy as np
 import argparse
+from pgtf.baselines.linear_feature_baseline import LinearFeatureBaseline
 
 def flatten_space(space):
     if isinstance(space, Box):
@@ -136,14 +137,14 @@ class PolicyOptimizer(object):
     def process_paths(self, paths):
         for p in paths:
             # TODO: compute baseline
-            # b = self.baseline.predict(p)
-            b = 0
+            b = self.baseline.predict(p)
+            #b = 0
             r = discount_cumsum(p["rewards"], self.discount_rate)
             a = r - b
 
             p["returns"] = r
-            # p["advantages"] = (a - a.mean()) / (a.std() + 1e-8) # normalize
-            p["advantages"] = a
+            p["advantages"] = (a - a.mean()) / (a.std() + 1e-8) # normalize
+            #p["advantages"] = a
             p["baselines"] = b
 
         obs = np.concatenate([ p["observations"] for p in paths ])
@@ -163,6 +164,7 @@ class PolicyOptimizer(object):
 
 
     def train(self):
+
         for i in range(1, self.n_iter+1):
             paths = []
             for _ in range(self.n_episode):
@@ -174,6 +176,8 @@ class PolicyOptimizer(object):
             if avg_return >= 195:
                 print("Solve at {} iterations, whih equals {} episodes.".format(i, i*100))
                 break
+
+            self.baseline.fit(paths)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -199,7 +203,8 @@ if __name__ == '__main__':
 
     opt = tf.train.AdamOptimizer(learning_rate=args.learning_rate)
     policy = CategoricalPolicy(in_dim, out_dim, hidden_dim, opt, sess)
-    po = PolicyOptimizer(env, policy, 0, args.n_iter, args.n_episode, args.path_length)
+    baseline = LinearFeatureBaseline(None)
+    po = PolicyOptimizer(env, policy, baseline, args.n_iter, args.n_episode, args.path_length)
 
     sess.run(tf.initialize_all_variables())
 
