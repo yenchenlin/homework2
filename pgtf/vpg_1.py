@@ -136,24 +136,22 @@ class PolicyOptimizer(object):
 
     def process_paths(self, paths):
         for p in paths:
-            # TODO: compute baseline
-            b = self.baseline.predict(p)
-            #b = 0
+            if self.baseline != None:
+                b = self.baseline.predict(p)
+            else:
+                b = 0
+
             r = discount_cumsum(p["rewards"], self.discount_rate)
             a = r - b
 
             p["returns"] = r
-            p["advantages"] = (a - a.mean()) / (a.std() + 1e-8) # normalize
-            #p["advantages"] = a
             p["baselines"] = b
+            p["advantages"] = (a - a.mean()) / (a.std() + 1e-8) # normalize
 
         obs = np.concatenate([ p["observations"] for p in paths ])
         actions = np.concatenate([ p["actions"] for p in paths ])
         rewards = np.concatenate([ p["rewards"] for p in paths ])
         advantages = np.concatenate([ p["advantages"] for p in paths ])
-
-        # TODO: fit baseline
-        # self.baseline.fit(paths)
 
         return dict(
             observations=obs,
@@ -177,7 +175,8 @@ class PolicyOptimizer(object):
                 print("Solve at {} iterations, whih equals {} episodes.".format(i, i*100))
                 break
 
-            self.baseline.fit(paths)
+            if self.baseline != None:
+                self.baseline.fit(paths)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
