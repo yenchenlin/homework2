@@ -147,6 +147,13 @@ class PolicyOptimizer(object):
             p["returns"] = r
             p["baselines"] = b
             p["advantages"] = (a - a.mean()) / (a.std() + 1e-8) # normalize
+            # TODO: Use the following line to compute advantage and compare
+            # how we can reduce variance by adding baseline and why it helps
+
+            #p["advantages"] = a
+
+        #print("Rewards variance: {}".format(np.var(p["returns"])))
+        #print("Advantages variance: {}".format(np.var(p["advantages"])))
 
         obs = np.concatenate([ p["observations"] for p in paths ])
         actions = np.concatenate([ p["actions"] for p in paths ])
@@ -160,9 +167,7 @@ class PolicyOptimizer(object):
             advantages=advantages,
         )
 
-
     def train(self):
-
         for i in range(1, self.n_iter+1):
             paths = []
             for _ in range(self.n_episode):
@@ -203,7 +208,7 @@ if __name__ == '__main__':
 
     opt = tf.train.AdamOptimizer(learning_rate=args.learning_rate)
     policy = CategoricalPolicy(in_dim, out_dim, hidden_dim, opt, sess)
-    baseline = LinearFeatureBaseline(None)
+    baseline = LinearFeatureBaseline(env.spec)
     po = PolicyOptimizer(env, policy, baseline, args.n_iter, args.n_episode, args.path_length,
                          args.discount_rate)
 
