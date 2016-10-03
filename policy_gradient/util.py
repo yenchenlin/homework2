@@ -10,5 +10,16 @@ def flatten_space(space):
 	else:
 		raise ValueError("Env must be either Box or Discrete.")
 
-def discount_cumsum(x, discount_rate):
-    return lfilter([1], [1, -discount_rate], x[::-1], axis=0)[::-1]
+"""
+Problem 3:
+
+1. Read the example provided in HW2_Policy_Graident.ipynb
+2. Uncomment below function and implement it.
+
+Sample solution is about 1~7 lines.
+"""
+
+# def discount_cumsum(x, discount_rate):
+    # YOUR CODE HERE >>>>>>
+    # return ???
+    # <<<<<<<<
